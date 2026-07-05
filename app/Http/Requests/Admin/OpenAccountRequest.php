@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class OpenAccountRequest extends FormRequest
 {
@@ -13,7 +14,10 @@ class OpenAccountRequest extends FormRequest
         $isFixed = $this->input('account_type') === 'fixed_deposit';
 
         return [
-            'customer_id'      => ['required', 'exists:customers,id'],
+            'customer_id' => [
+                'required',
+                Rule::exists('customers', 'id')->where('status', 'active'),
+            ],
             'branch_id'        => ['required', 'exists:branches,id'],
             'account_type'     => ['required', 'in:savings,current,fixed_deposit'],
             'currency'         => ['nullable', 'string', 'size:3'],
@@ -32,7 +36,7 @@ class OpenAccountRequest extends FormRequest
     {
         return [
             'customer_id.required'    => 'Please select a customer.',
-            'customer_id.exists'      => 'Selected customer does not exist.',
+            'customer_id.exists'      => 'Selected customer does not exist or is not active.',
             'branch_id.required'      => 'Please select a branch.',
             'fd_tenure_months.required' => 'Tenure (months) is required for Fixed Deposit accounts.',
             'fd_maturity_action.required' => 'Please select what happens at maturity.',

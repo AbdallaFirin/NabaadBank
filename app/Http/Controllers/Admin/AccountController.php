@@ -53,14 +53,16 @@ class AccountController extends Controller
         if ($request->has('customer_id')) {
             $preselectedCustomer = Customer::where('id', $request->customer_id)
                 ->where('status', 'active')
-                ->select('id', 'name', 'customer_number')
+                ->whereHas('kyc', fn ($q) => $q->where('status', 'approved'))
+                ->select('id', 'name', 'customer_number', 'email', 'phone')
                 ->first();
         }
 
         return Inertia::render('Admin/Accounts/Create', [
             'branches'  => Branch::where('status', 'active')->get(['id', 'name', 'code']),
             'customers' => Customer::where('status', 'active')
-                ->select('id', 'name', 'customer_number', 'email')
+                ->whereHas('kyc', fn ($q) => $q->where('status', 'approved'))
+                ->select('id', 'name', 'customer_number', 'email', 'phone')
                 ->orderBy('name')
                 ->get(),
             'preselectedCustomer' => $preselectedCustomer,

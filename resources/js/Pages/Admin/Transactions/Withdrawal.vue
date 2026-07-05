@@ -25,6 +25,9 @@
                     <div class="fw-bold font-monospace">{{ selected.account_number }}</div>
                     <div class="small text-muted">{{ selected.customer?.name }} &bull; {{ accountTypeLabel(selected.account_type) }}</div>
                     <div class="small text-success fw-semibold">Balance: {{ formatCurrency(selected.balance, selected.currency) }}</div>
+                  <div v-if="selected.minimum_balance > 0" class="small text-muted">
+                    Available to withdraw: <strong>{{ formatCurrency(availableBalance, selected.currency) }}</strong>
+                  </div>
                   </div>
                   <button type="button" class="btn btn-sm btn-outline-secondary" @click="clearAccount">Change</button>
                 </div>
@@ -76,7 +79,7 @@
                   <div v-if="form.errors.amount" class="invalid-feedback">{{ form.errors.amount }}</div>
                 </div>
                 <div v-if="insufficientFunds" class="text-danger small mt-1">
-                  <i class="bi bi-exclamation-triangle me-1"></i>Insufficient funds. Available: {{ formatCurrency(selected.balance, selected.currency) }}
+                  <i class="bi bi-exclamation-triangle me-1"></i>Insufficient funds. Available to withdraw: {{ formatCurrency(availableBalance, selected.currency) }}
                 </div>
               </div>
 
@@ -129,16 +132,24 @@
                 <div class="text-muted small">Current Balance</div>
                 <div class="fw-semibold">{{ formatCurrency(selected.balance, selected.currency) }}</div>
               </div>
+              <div v-if="selected.minimum_balance > 0" class="mb-3 pb-3 border-bottom">
+                <div class="text-muted small">Minimum Balance (reserved)</div>
+                <div class="fw-semibold text-warning">{{ formatCurrency(selected.minimum_balance, selected.currency) }}</div>
+              </div>
+              <div class="mb-3 pb-3 border-bottom">
+                <div class="text-muted small">Available to Withdraw</div>
+                <div class="fw-semibold text-success">{{ formatCurrency(availableBalance, selected.currency) }}</div>
+              </div>
               <div class="mb-3 pb-3 border-bottom">
                 <div class="text-muted small">Withdrawal Amount</div>
                 <div class="fw-bold fs-5 text-danger">{{ form.amount ? formatCurrency(form.amount, selected.currency) : '—' }}</div>
               </div>
               <div>
                 <div class="text-muted small">New Balance (est.)</div>
-                <div class="fw-bold fs-5" :class="newBalance < 0 ? 'text-danger' : ''">
+                <div class="fw-bold fs-5" :class="insufficientFunds ? 'text-danger' : ''">
                   {{ form.amount ? formatCurrency(newBalance, selected.currency) : '—' }}
                 </div>
-                <div v-if="newBalance < 0" class="text-danger small mt-1"><i class="bi bi-exclamation-triangle me-1"></i>Insufficient funds</div>
+                <div v-if="insufficientFunds" class="text-danger small mt-1"><i class="bi bi-exclamation-triangle me-1"></i>Would breach minimum balance</div>
               </div>
             </div>
           </div>
@@ -178,13 +189,18 @@ const filtered = computed(() => {
   ).slice(0, 8);
 });
 
+const availableBalance = computed(() => {
+  if (!selected.value) return 0;
+  return parseFloat(selected.value.balance) - parseFloat(selected.value.minimum_balance ?? 0);
+});
+
 const newBalance = computed(() => {
   if (!selected.value || !form.amount) return 0;
   return parseFloat(selected.value.balance) - parseFloat(form.amount);
 });
 
 const insufficientFunds = computed(() =>
-  selected.value && form.amount && parseFloat(form.amount) > parseFloat(selected.value.balance)
+  selected.value && form.amount && parseFloat(form.amount) > availableBalance.value
 );
 
 const selectAccount = (acc) => {

@@ -70,7 +70,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'approvals.view', 'approvals.approve', 'approvals.reject',
             'teller.close-till', 'teller.assign', 'teller.reconcile',
             'vault.view', 'vault.cash-in', 'vault.cash-out', 'vault.transfer',
-            'loans.view', 'loans.approve',
+            'loans.view', 'loans.approve', 'loans.close',
             'cheques.view', 'cheques.verify',
             'reports.view', 'reports.export',
             'audit.view',

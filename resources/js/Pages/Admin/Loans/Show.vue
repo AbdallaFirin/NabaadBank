@@ -26,7 +26,7 @@
           class="btn btn-primary btn-sm" @click="showDisburse = true">
           <i class="bi bi-bank me-1"></i>Disburse
         </button>
-        <button v-if="['active','overdue'].includes(loan.status) && can('loans.disburse')"
+        <button v-if="['active','overdue'].includes(loan.status) && can('loans.close')"
           class="btn btn-success btn-sm" @click="openRepay">
           <i class="bi bi-cash-coin me-1"></i>Make Repayment
         </button>

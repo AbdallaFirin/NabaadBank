@@ -96,9 +96,12 @@
                 </div>
               </div>
 
+              <div v-if="form.errors.customer_id" class="alert alert-danger small py-2 mt-2">
+                <i class="bi bi-exclamation-triangle me-1"></i>{{ form.errors.customer_id }}
+              </div>
               <div class="form-text mt-1">
                 <i class="bi bi-shield-check me-1 text-success"></i>
-                Only KYC-approved active customers are shown.
+                Only customers with <strong>active status</strong> and <strong>approved KYC</strong> can open accounts.
               </div>
             </div>
           </div>

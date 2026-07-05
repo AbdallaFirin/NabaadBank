@@ -191,7 +191,7 @@ class TransactionController extends Controller
     {
         return Account::with('customer')
             ->where('status', 'active')
-            ->select('id', 'account_number', 'customer_id', 'account_type', 'balance', 'currency', 'branch_id')
+            ->select('id', 'account_number', 'customer_id', 'account_type', 'balance', 'minimum_balance', 'currency', 'branch_id')
             ->orderBy('account_number')
             ->get();
     }

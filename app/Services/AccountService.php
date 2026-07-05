@@ -25,7 +25,13 @@ class AccountService
     {
         if (!$customer->isActive()) {
             throw ValidationException::withMessages([
-                'customer' => 'Only active (KYC-approved) customers can open accounts.',
+                'customer_id' => 'Only active customers can open accounts.',
+            ]);
+        }
+
+        if (!$customer->hasApprovedKyc()) {
+            throw ValidationException::withMessages([
+                'customer_id' => 'Customer must have approved KYC before opening an account.',
             ]);
         }
 
