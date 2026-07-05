@@ -40,13 +40,15 @@ class CustomerController extends Controller
 
     public function store(CreateCustomerRequest $request): RedirectResponse
     {
-        $customer = $this->service->create($request->validated());
+        $this->authorize('create', Customer::class);
+
+        [$customer, $tempPassword] = $this->service->create($request->validated());
 
         AuditLog::record('customer_created', 'customers',
             "Customer {$customer->name} ({$customer->customer_number}) created.");
 
         return redirect()->route('admin.customers.show', $customer)
-            ->with('success', "Customer {$customer->name} ({$customer->customer_number}) created successfully.");
+            ->with('success', "Customer {$customer->name} ({$customer->customer_number}) created. Temporary password: {$tempPassword}");
     }
 
     public function show(Customer $customer): Response

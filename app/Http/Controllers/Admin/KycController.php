@@ -120,7 +120,7 @@ class KycController extends Controller
             default  => $document->file_path,
         };
 
-        if (!$path || !$document->exists($path)) {
+        if (!$path || !Storage::disk('local')->exists($path)) {
             abort(404, 'Document image not found.');
         }
 

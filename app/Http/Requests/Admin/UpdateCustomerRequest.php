@@ -16,7 +16,7 @@ class UpdateCustomerRequest extends FormRequest
         return [
             // Personal
             'name'          => ['required', 'string', 'max:255'],
-            'date_of_birth' => ['nullable', 'date', 'before:today'],
+            'date_of_birth' => ['nullable', 'date', 'before_or_equal:' . now()->subYears(18)->toDateString()],
             'gender'        => ['nullable', 'in:male,female,other'],
             'nationality'   => ['nullable', 'string', 'max:100'],
             'occupation'    => ['nullable', 'string', 'max:255'],

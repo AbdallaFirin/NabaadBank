@@ -13,7 +13,7 @@ class CreateCustomerRequest extends FormRequest
         return [
             // Personal
             'name'          => ['required', 'string', 'max:255'],
-            'date_of_birth' => ['nullable', 'date', 'before:today'],
+            'date_of_birth' => ['nullable', 'date', 'before_or_equal:' . now()->subYears(18)->toDateString()],
             'gender'        => ['nullable', 'in:male,female,other'],
             'nationality'   => ['nullable', 'string', 'max:100'],
             'occupation'    => ['nullable', 'string', 'max:255'],
@@ -39,8 +39,9 @@ class CreateCustomerRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'phone.unique' => 'This phone number is already registered.',
-            'email.unique' => 'This email address is already registered.',
+            'phone.unique'              => 'This phone number is already registered.',
+            'email.unique'              => 'This email address is already registered.',
+            'date_of_birth.before_or_equal' => 'Customer must be at least 18 years old.',
         ];
     }
 }

@@ -21,47 +21,52 @@ class CustomerService
         return $this->repo->paginate($filters);
     }
 
-    public function create(array $data): Customer
+    public function create(array $data): array
     {
         $customerNumber = $this->generateCustomerNumber();
+        $tempPassword   = 'Nabaad@' . random_int(1000, 9999);
 
-        $customer = $this->repo->create([
-            'customer_number'          => $customerNumber,
-            'name'                     => $data['name'],
-            'email'                    => $data['email'],
-            'phone'                    => $data['phone'],
-            'password'                 => Hash::make('Nabaad@' . random_int(1000, 9999)),
-            'gender'                   => $data['gender'] ?? null,
-            'nationality'              => $data['nationality'] ?? null,
-            'marital_status'           => $data['marital_status'] ?? null,
-            'date_of_birth'            => $data['date_of_birth'] ?? null,
-            'occupation'               => $data['occupation'] ?? null,
-            'address'                  => $data['address'] ?? null,
-            'city'                     => $data['city'] ?? null,
-            'next_of_kin_name'         => $data['next_of_kin_name'] ?? null,
-            'next_of_kin_phone'        => $data['next_of_kin_phone'] ?? null,
-            'next_of_kin_relationship' => $data['next_of_kin_relationship'] ?? null,
-            'status'                   => 'pending',
-            'email_verified_at'        => now(),
-        ]);
+        $customer = DB::transaction(function () use ($data, $customerNumber, $tempPassword) {
+            $customer = $this->repo->create([
+                'customer_number'          => $customerNumber,
+                'name'                     => $data['name'],
+                'email'                    => $data['email'],
+                'phone'                    => $data['phone'],
+                'password'                 => Hash::make($tempPassword),
+                'gender'                   => $data['gender'] ?? null,
+                'nationality'              => $data['nationality'] ?? null,
+                'marital_status'           => $data['marital_status'] ?? null,
+                'date_of_birth'            => $data['date_of_birth'] ?? null,
+                'occupation'               => $data['occupation'] ?? null,
+                'address'                  => $data['address'] ?? null,
+                'city'                     => $data['city'] ?? null,
+                'next_of_kin_name'         => $data['next_of_kin_name'] ?? null,
+                'next_of_kin_phone'        => $data['next_of_kin_phone'] ?? null,
+                'next_of_kin_relationship' => $data['next_of_kin_relationship'] ?? null,
+                'status'                   => 'pending',
+                'email_verified_at'        => now(),
+            ]);
 
-        // Store photo and signature after customer is created (need the ID for the path)
-        $updates = [];
-        if (!empty($data['photo'])) {
-            $updates['photo_path'] = $this->storeFile($data['photo'], "customers/{$customer->id}", 'photo');
-        }
-        if (!empty($data['signature'])) {
-            $updates['signature_path'] = $this->storeFile($data['signature'], "customers/{$customer->id}", 'signature');
-        }
-        if ($updates) {
-            $customer->update($updates);
-        }
+            // Store photo and signature (need the customer ID for the path)
+            $updates = [];
+            if (!empty($data['photo'])) {
+                $updates['photo_path'] = $this->storeFile($data['photo'], "customers/{$customer->id}", 'photo');
+            }
+            if (!empty($data['signature'])) {
+                $updates['signature_path'] = $this->storeFile($data['signature'], "customers/{$customer->id}", 'signature');
+            }
+            if ($updates) {
+                $customer->update($updates);
+            }
 
-        // Auto-create KYC record so documents can be uploaded immediately
-        KycVerification::create([
-            'customer_id' => $customer->id,
-            'status'      => 'pending',
-        ]);
+            // Auto-create KYC record so documents can be uploaded immediately
+            KycVerification::create([
+                'customer_id' => $customer->id,
+                'status'      => 'pending',
+            ]);
+
+            return $customer;
+        });
 
         AuditLog::record('created', 'customers', "Registered customer {$customer->name} ({$customerNumber})", [], [
             'name'            => $customer->name,
@@ -69,7 +74,7 @@ class CustomerService
             'customer_number' => $customerNumber,
         ]);
 
-        return $customer;
+        return [$customer, $tempPassword];
     }
 
     public function update(Customer $customer, array $data): Customer
